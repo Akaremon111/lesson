@@ -10,7 +10,9 @@ public class PlayerController : MonoBehaviour
     private int setAnimation;
 
     // Playerの移動スピード
-    private float PlayerSpeed;
+    //private float PlayerSpeed;
+    [SerializeField]
+    private SaveDate saveDate;
 
     private float InputX;
     private float InputZ;
@@ -97,13 +99,23 @@ public class PlayerController : MonoBehaviour
         moveForward = cameraForward * InputZ + Camera.main.transform.right * InputX;
 
         // Playerスピードの変更
-        PlayerSpeed = shiftKey ? 5 : 2;
+        //saveDate.PlayerSpeed = shiftKey ? 5 : 2;
+        if(Input.GetKeyDown(KeyCode.K))
+        {
+            saveDate.PlayerSpeed += 1;
+            PlayerPrefs.SetFloat("Speed", saveDate.PlayerSpeed);
+            PlayerPrefs.Save();
+        }
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            PlayerPrefs.DeleteAll();
+        }
     }
 
     private void FixedUpdate()
     {
         // カメラの方向を前として移動を行う
-        transform.position += moveForward * Time.deltaTime * PlayerSpeed;
+        transform.position += moveForward * Time.deltaTime * saveDate.PlayerSpeed;
     }
 
     private void PlayerAngle()
