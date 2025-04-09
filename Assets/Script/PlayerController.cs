@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
     private float InputX;
     private float InputZ;
 
-
     /// <summary>
     /// PlayerMoveで使用
     /// </summary>
@@ -60,6 +59,12 @@ public class PlayerController : MonoBehaviour
     private bool dKey;
     // shiftキーの入力
     private bool shiftKey;
+
+    /// <summary>
+    /// マウスの入力検知
+    /// </summary>
+    // 左クリックの入力検知
+    private bool leftButton;
 
     // Start is called before the first frame update
     void Start()
@@ -118,6 +123,9 @@ public class PlayerController : MonoBehaviour
         transform.position += moveForward * Time.deltaTime * saveDate.PlayerSpeed;
     }
 
+    /// <summary>
+    /// Playerの移動方向の角度計算
+    /// </summary>
     private void PlayerAngle()
     {
         // 現在の位置
@@ -147,34 +155,40 @@ public class PlayerController : MonoBehaviour
         PlayerTransform.rotation = nextRot;
     }
 
+    /// <summary>
+    /// Playerのアニメーション
+    /// </summary>
     void PlayerAnimation()
     {
-        // 
+        // 移動キーが押されている時
         if((wKey || aKey || sKey || dKey )&& !shiftKey)
         {
+            // 歩く時のアニメーション
             pAnimation = 1;
             Debug.Log(pAnimation);
         }
         if(!(wKey || aKey || sKey || dKey))
         {
+            // アイドル時のアニメーション
             pAnimation = 0;
             Debug.Log(pAnimation);
         }
         if ((wKey || aKey || sKey || dKey) && shiftKey)
         {
+            // 走っている時の処理
             pAnimation = 2;
             Debug.Log(pAnimation);
         }
         if(pAnimation != setAnimation)
         {
             setAnimation = pAnimation;
-            animator.SetInteger("PlayerAnimation", setAnimation);
+            animator.SetInteger("PlayerMoveAnimation", setAnimation);
         }
     }
 
 
     /// <summary>
-    /// キー入力の検知
+    /// 入力の検知
     /// </summary>
     void KeyInput()
     {
@@ -186,6 +200,9 @@ public class PlayerController : MonoBehaviour
         sKey = Input.GetKey(KeyCode.S) ? true : false;
         // Dキーの入力検知
         dKey = Input.GetKey(KeyCode.D) ? true : false;
+
+        // 左クリックの入力検知
+        leftButton = Input.GetMouseButtonDown(0) ? true : false;
 
         // Shiftキーの入力検知
         shiftKey = Input.GetKey(KeyCode.LeftShift) ? true : false;
