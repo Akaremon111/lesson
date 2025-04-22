@@ -5,15 +5,10 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private Animator animator;
-    private int pAnimation = 0;
-    private int setAnimation;
-
     // Playerの移動スピード
-    //private float PlayerSpeed;
-    [SerializeField]
-    private SaveDate saveDate;
+    private float PlayerSpeed;
 
+    // 移動キーの入力
     private float InputX;
     private float InputZ;
 
@@ -66,8 +61,16 @@ public class PlayerController : MonoBehaviour
     // 左クリックの入力検知
     private bool leftButton;
 
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Animation
+    /// </summary>
+    private Animator animator;
+
+    // 移動のAnimation
+    private int pMoveAnimation = 0;
+    private int getMoveAnimation;
+
+    private void Awake()
     {
         // Playerのアニメーション
         animator = GetComponent<Animator>();
@@ -77,8 +80,7 @@ public class PlayerController : MonoBehaviour
         previousPos = PlayerTransform.position;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         InputX = Input.GetAxis("Horizontal");
         InputZ = Input.GetAxis("Vertical");
@@ -89,7 +91,11 @@ public class PlayerController : MonoBehaviour
         // Playerの角度
         PlayerAngle();
 
+        // 入力検知
         KeyInput();
+
+        // タイマー関数
+
     }
 
 
@@ -104,23 +110,13 @@ public class PlayerController : MonoBehaviour
         moveForward = cameraForward * InputZ + Camera.main.transform.right * InputX;
 
         // Playerスピードの変更
-        //saveDate.PlayerSpeed = shiftKey ? 5 : 2;
-        if(Input.GetKeyDown(KeyCode.K))
-        {
-            saveDate.PlayerSpeed += 1;
-            PlayerPrefs.SetFloat("Speed", saveDate.PlayerSpeed);
-            PlayerPrefs.Save();
-        }
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            PlayerPrefs.DeleteAll();
-        }
+        PlayerSpeed = shiftKey ? 5 : 2;
     }
 
     private void FixedUpdate()
     {
         // カメラの方向を前として移動を行う
-        transform.position += moveForward * Time.deltaTime * saveDate.PlayerSpeed;
+        transform.position += moveForward * Time.deltaTime * PlayerSpeed;
     }
 
     /// <summary>
@@ -164,33 +160,44 @@ public class PlayerController : MonoBehaviour
         if((wKey || aKey || sKey || dKey )&& !shiftKey)
         {
             // 歩く時のアニメーション
-            pAnimation = 1;
-            Debug.Log(pAnimation);
+            pMoveAnimation = 1;
+            Debug.Log(pMoveAnimation);
         }
         if(!(wKey || aKey || sKey || dKey))
         {
             // アイドル時のアニメーション
-            pAnimation = 0;
-            Debug.Log(pAnimation);
+            pMoveAnimation = 0;
+            Debug.Log(pMoveAnimation);
         }
         if ((wKey || aKey || sKey || dKey) && shiftKey)
         {
             // 走っている時の処理
-            pAnimation = 2;
-            Debug.Log(pAnimation);
+            pMoveAnimation = 2;
+            Debug.Log(pMoveAnimation);
         }
-        if(pAnimation != setAnimation)
+        // 値が合わないときに読み込む
+        if(pMoveAnimation != getMoveAnimation)
         {
-            setAnimation = pAnimation;
-            animator.SetInteger("PlayerMoveAnimation", setAnimation);
+            // 値を同じにする
+            getMoveAnimation = pMoveAnimation;
+
+            // PlayerMoveAnimationの値をgetComboAnimationにする
+            animator.SetInteger("PlayerMoveAnimation", getMoveAnimation);
+        }
+
+        // 攻撃のアニメーション
+        if (leftButton)
+        {
+            animator.SetTrigger("PlayerFastAttackAnimation");
+            animator.SetTrigger("PlayerSecondAttackAnimation");
+            animator.SetTrigger("PlayerThirdAttackAnimation");
         }
     }
-
 
     /// <summary>
     /// 入力の検知
     /// </summary>
-    void KeyInput()
+    private void KeyInput()
     {
         // Wキーの入力検知
         wKey = Input.GetKey(KeyCode.W) ? true : false;
