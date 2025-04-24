@@ -88,8 +88,6 @@ public class InputManager : MonoBehaviour
     private void Update()
     {
         InputUpdate();
-        Debug.Log("Move: " + Move);
-
     }
 
     /// <summary>

@@ -59,6 +59,8 @@ public class PlayerAttack : MonoBehaviour
         // 左クリックの入力を検知したとき
         if (attack > 0 && isClick)
         {
+            Debug.Log(AttackComboCount);
+
             // もう一度押さないとだめにする
             isClick = false;
 
@@ -66,29 +68,36 @@ public class PlayerAttack : MonoBehaviour
             if(AttackComboCount == 0)
             {
                 animator.SetBool("PlayerAttackAnimation1", true);
+                Debug.Log("攻撃1回目！");
             }
             else if (AttackComboCount == 1)
             {
                 animator.SetBool("PlayerAttackAnimation2", true);
+                Debug.Log("攻撃2回目！");
             }
             else if (AttackComboCount == 2)
             {
                 animator.SetBool("PlayerAttackAnimation3", true);
+                Debug.Log("攻撃3回目！");
             }
-            // コンボのカウントを進める
-            AttackComboCount++;
 
             // Timerを開始
             TimerController.Instance.IsStartTimer = true;
         }
-        // タイムが2秒たったら
+        // 1秒以内に次の攻撃の入力を受け取ったら
+        if(TimerController.Instance.ElapsedTime < 1.0f || AttackComboCount < 2)
+        {
+            // Timerのストップとリセット
+            AttackTimerReset();
+
+            // コンボのカウントを進める
+            AttackComboCount++;
+        }
+        // タイムが2秒以上もしくはAttackカウントは3以上になれば
         if (TimerController.Instance.ElapsedTime >= 1.0f || AttackComboCount >= 3)
         {
-            // タイマーを止める
-            TimerController.Instance.IsStartTimer = false;
-
-            // タイマーのリセット
-            TimerController.Instance.IsResetTimer = true;
+            // Timerのストップとリセット
+            AttackTimerReset();
 
             // AttackComboCountを0に戻す
             AttackComboCount = 0;
@@ -106,5 +115,17 @@ public class PlayerAttack : MonoBehaviour
         {
             isClick = true;
         }
+    }
+
+    /// <summary>
+    /// Timerのストップとリセット
+    /// </summary>
+    private void AttackTimerReset()
+    {
+        // タイマーを止める
+        TimerController.Instance.IsStartTimer = false;
+
+        // タイマーのリセット
+        TimerController.Instance.IsResetTimer = true;
     }
 }
