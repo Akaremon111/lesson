@@ -2,16 +2,53 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.UI;
 using UnityEngine.Windows;
 
 public class PlayerMove : MonoBehaviour
 {
+    [Header("移動設定")]
     /// <summary>
     /// Playerの移動速度
     /// </summary>
     [SerializeField]
     private float moveSpeed = 2.0f;
+
+    /// <summary>
+    /// ジャンプの高さ
+    /// </summary>
+    [SerializeField]
+    private float JumpHight;
+
+    /// <summary>
+    /// ジャンプの最大の高さ
+    /// </summary>
+    [SerializeField]
+    private float MaxJump = 3;
+
+    /// <summary>
+    /// Playerにかける重力
+    /// </summary>
+    [SerializeField]
+    private float Gravity;
+
+    /// <summary>
+    /// 回転時間
+    /// </summary>
+    [SerializeField]
+    private float smoothTime;
+
+    /// <summary>
+    /// 回転する最大のスピード
+    /// </summary>
+    [SerializeField]
+    private float maxSpeed;
+    
+    /// <summary>
+    /// 現在地面にいるのかどうかの判定
+    /// </summary>
+    private bool isGround = true;
 
     /// <summary>
     /// カメラの向いている方向
@@ -35,16 +72,9 @@ public class PlayerMove : MonoBehaviour
     private float crrentVerocity;
 
     /// <summary>
-    /// 回転時間
+    /// 垂直方向の速度
     /// </summary>
-    [SerializeField]
-    private float smoothTime;
-
-    /// <summary>
-    /// 回転する最大のスピード
-    /// </summary>
-    [SerializeField]
-    private float maxSpeed;
+    private Vector3 Velocity;
 
     /// <summary>
     /// InputManagerから受け取る
@@ -53,6 +83,8 @@ public class PlayerMove : MonoBehaviour
     private Vector2 move;
     // Sprint
     private float sprint;
+    // Jump
+    private float jump;
 
     /// <summary>
     /// Animation
@@ -60,15 +92,30 @@ public class PlayerMove : MonoBehaviour
     private Animator animator;
 
     /// <summary>
+    /// CharacterController
+    /// </summary>
+    private CharacterController characterController;
+
+    /// <summary>
     /// 移動のAnimation
     /// </summary>
     private int pMoveAnimation = 0;
     private int getMoveAnimation;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    private Vector3 velocity;
+
     private void Awake()
     {
         // アニメーションコンポーネント取得
         animator = GetComponent<Animator>();
+
+        // キャラクターコントローラーのコンポーネント取得
+        characterController = GetComponent<CharacterController>();
+
+        Velocity = Vector3.zero;
 
         // transformの取得
         PlayerTransform = transform;
@@ -79,6 +126,7 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
+        // 入力を受け取る
         getInput();
 
         // 移動方向の処理
@@ -89,8 +137,25 @@ public class PlayerMove : MonoBehaviour
 
         // アニメーションを動かす
         moveAnimation();
+
+        // ジャンプ
+        PlayerJump();
     }
 
+    /// <summary>
+    /// InputManagerからの受け取り
+    /// </summary>
+    private void getInput()
+    {
+        // Moveを受け取る
+        move = InputManager.Instance.Move;
+
+        // Sprintを受け取る
+        sprint = InputManager.Instance.Sprint;
+
+        // Jumpを受け取る
+        jump = InputManager.Instance.Jump;
+    }
     private void FixedUpdate()
     {
         // 移動の処理
@@ -108,15 +173,45 @@ public class PlayerMove : MonoBehaviour
     }
 
     /// <summary>
-    /// InputManagerからの受け取り
+    /// Playerのジャンプの処理を行う
     /// </summary>
-    private void getInput()
+    private void PlayerJump()
     {
-        // Moveを受け取る
-        move = InputManager.Instance.Move;
+        //地面についているかつジャンプボタンを押されたとき
+        if (isGround && jump > 0)
+        {
+            Debug.Log("スペースが押されましたよ");
+            //Y方向にJumpHightを代入する
+            Velocity.y = JumpHight;
 
-        // Sprintを受け取る
-        sprint = InputManager.Instance.Sprint;
+            //地面についていない扱いにする
+            isGround = false;
+        }
+        //地面についていないかつジャンプの高さがMaxまできたとき
+        if (!isGround && transform.position.y == MaxJump)
+        {
+
+        }
+        // 重力を加える
+        velocity.y += Physics.gravity.y * Time.deltaTime;
+        characterController.Move(velocity * Time.deltaTime);
+
+        // Y方向に移動させる
+        transform.position += Velocity * Time.deltaTime;
+
+        Debug.Log(isGround);
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            // 地面についてる扱いにする
+            isGround = true;
+            // ここでY方向の移動を止める
+            /*if (Velocity.y < 0) */
+            Velocity.y = 0;
+        }
     }
 
     /// <summary>

@@ -27,6 +27,9 @@ public class PlayerAttack : MonoBehaviour
     /// </summary>
     private float ComboTimer = 0;
 
+    // コンボが繋がる猶予時間
+    private float comboInterval = 1.0f;
+
     private void Awake()
     {
         // アニメーターのコンポーネント取得
@@ -40,6 +43,24 @@ public class PlayerAttack : MonoBehaviour
 
         // 攻撃時のアニメーション
         AttackAnimation();
+
+        // ComboTimerのカウントダウン
+        if (ComboTimer > 0)
+        {
+            ComboTimer -= Time.deltaTime;
+        }
+
+        // タイムが切れたらコンボリセット
+        if (ComboTimer <= 0 && AttackComboCount > 0)
+        {
+            AttackTimerReset();
+            AttackComboCount = 0;
+
+            // アニメーション状態もリセット
+            animator.SetBool("PlayerAttackAnimation1", false);
+            animator.SetBool("PlayerAttackAnimation2", false);
+            animator.SetBool("PlayerAttackAnimation3", false);
+        }
     }
 
     /// <summary>
@@ -59,55 +80,32 @@ public class PlayerAttack : MonoBehaviour
         // 左クリックの入力を検知したとき
         if (attack > 0 && isClick)
         {
-            Debug.Log(AttackComboCount);
 
             // もう一度押さないとだめにする
             isClick = false;
 
-            // 1段目の攻撃アニメーション
-            if(AttackComboCount == 0)
+            // コンボのカウントを進める
+            AttackComboCount++;
+
+            // Timerをリスタート
+            ComboTimer = comboInterval;
+
+            // 攻撃アニメーション
+            if (AttackComboCount == 1)
             {
                 animator.SetBool("PlayerAttackAnimation1", true);
-                Debug.Log("攻撃1回目！");
-            }
-            else if (AttackComboCount == 1)
-            {
-                animator.SetBool("PlayerAttackAnimation2", true);
-                Debug.Log("攻撃2回目！");
             }
             else if (AttackComboCount == 2)
             {
+                animator.SetBool("PlayerAttackAnimation2", true);
+            }
+            else if (AttackComboCount == 3)
+            {
                 animator.SetBool("PlayerAttackAnimation3", true);
-                Debug.Log("攻撃3回目！");
             }
 
-            // Timerを開始
+            // Timerを開始（外部タイマーが必要ならここで）
             TimerController.Instance.IsStartTimer = true;
-        }
-        // 1秒以内に次の攻撃の入力を受け取ったら
-        if(TimerController.Instance.ElapsedTime < 1.0f || AttackComboCount < 2)
-        {
-            // Timerのストップとリセット
-            AttackTimerReset();
-
-            // コンボのカウントを進める
-            AttackComboCount++;
-        }
-        // タイムが2秒以上もしくはAttackカウントは3以上になれば
-        if (TimerController.Instance.ElapsedTime >= 1.0f || AttackComboCount >= 3)
-        {
-            // Timerのストップとリセット
-            AttackTimerReset();
-
-            // AttackComboCountを0に戻す
-            AttackComboCount = 0;
-
-            // アタックアニメーションをfalseにする
-            animator.SetBool("PlayerAttackAnimation1", false);
-
-            animator.SetBool("PlayerAttackAnimation2", false);
-
-            animator.SetBool("PlayerAttackAnimation3", false);
         }
 
         // ボタン離したら次のクリックを許可する
