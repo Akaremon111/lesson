@@ -547,7 +547,7 @@ GameObject:
   - component: {fileID: 1176569541}
   m_Layer: 0
   m_Name: Terrain
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 2147483647
@@ -903,6 +903,8 @@ MonoBehaviour:
   Gravity: -25
   smoothTime: 0.1
   maxSpeed: Infinity
+  sphereRadius: 0.5
+  maxDistance: 0.1
 --- !u!114 &1756425155
 MonoBehaviour:
   m_ObjectHideFlags: 0

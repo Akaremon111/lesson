@@ -44,7 +44,20 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     [SerializeField]
     private float maxSpeed;
-    
+
+    [Header("その他設定")]
+    // SphereCastの半径
+    [SerializeField]
+    private float sphereRadius;
+    /// <summary>
+    /// SphereCastの最大の距離
+    /// </summary>
+    [SerializeField]
+    private float maxDistance;
+
+    // SphereCastの原点
+    private Vector3 origin;
+
     /// <summary>
     /// 現在地面にいるのかどうかの判定
     /// </summary>
@@ -61,9 +74,14 @@ public class PlayerMove : MonoBehaviour
     Vector3 moveForward;
 
     /// <summary>
-    /// 現在のポジション
+    /// Transgorm
     /// </summary>
     private Transform PlayerTransform;
+
+    /// <summary>
+    /// 現在のポジション
+    /// </summary>
+    Vector3 nowPos;
 
     /// <summary>
     /// １フレーム前のポジション
@@ -177,41 +195,89 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     private void PlayerJump()
     {
-        //地面についているかつジャンプボタンを押されたとき
-        if (isGround && jump > 0)
-        {
-            Debug.Log("スペースが押されましたよ");
-            //Y方向にJumpHightを代入する
-            Velocity.y = JumpHight;
+        //// Ray(SphereCast)の開始地点
+        //origin = transform.position + new Vector3(0.0f, 0.3f, 0.0f);
 
-            //地面についていない扱いにする
+        //// Rayに当たった物の判定をとる
+        //RaycastHit hit;
+
+        //// Ray(SphereCast)に当たった時の処理
+        //if(Physics.SphereCast(origin, sphereRadius, Vector3.down, out hit, maxDistance))
+        //{
+        //    // Rayが当たっているオブジェクトのタグがGroundなら
+        //    if (hit.collider.gameObject.tag == "Ground")
+        //    {
+        //        Debug.Log("地面なう");
+        //        // isGroundをtrueにする
+        //        isGround = true;
+        //    }
+        //}
+        //// 地面についているかつジャンプボタンを押されたとき
+        //if (isGround && jump > 0)
+        //{
+        //    Debug.Log("スペースが押されましたよ");
+        //    // Y方向に移動させる
+        //    Velocity.y = Mathf.Sqrt(JumpHight * -2f * Physics.gravity.y);
+        //}
+
+        ////if(nowPos.y == MaxJump)
+        ////    // 地面についていない扱いにする
+        ////    isGround = false;
+
+        //// 重力を加える
+        //velocity.y += Physics.gravity.y * Time.deltaTime;
+        //characterController.Move(velocity * Time.deltaTime);
+        ////if (!isGround)
+        ////{
+
+        ////}
+        ///
+        origin = transform.position + new Vector3(0.0f, 0.3f, 0.0f);
+
+        RaycastHit hit;
+
+        if (Physics.SphereCast(origin, sphereRadius, Vector3.down, out hit, maxDistance))
+        {
+            if (hit.collider.gameObject.CompareTag("Ground"))
+            {
+                isGround = true;
+            }
+        }
+
+        if (characterController.isGrounded || isGround)
+        {
+            // 地面にいるときだけジャンプできる
+            if (jump > 0f)
+            {
+                Velocity.y = Mathf.Sqrt(JumpHight * -2f * Physics.gravity.y); // ジャンプ初速度を計算
+            }
+        }
+        else
+        {
             isGround = false;
         }
-        //地面についていないかつジャンプの高さがMaxまできたとき
-        if (!isGround && transform.position.y == MaxJump)
+
+        if (!isGround)
         {
+            // 常に重力を適用
+            Velocity.y += Physics.gravity.y * Time.deltaTime;
 
+            characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
         }
-        // 重力を加える
-        velocity.y += Physics.gravity.y * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
 
-        // Y方向に移動させる
-        transform.position += Velocity * Time.deltaTime;
-
-        Debug.Log(isGround);
+        Debug.Log("地面にいるでしょうか:" + isGround);
     }
 
-    private void OnCollisionStay(Collision collision)
+    /// <summary>
+    /// SphereCastの可視化
+    /// </summary>
+    private void OnDrawGizmos()
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            // 地面についてる扱いにする
-            isGround = true;
-            // ここでY方向の移動を止める
-            /*if (Velocity.y < 0) */
-            Velocity.y = 0;
-        }
+        // カラーは青
+        Gizmos.color = Color.blue;
+
+        // Rayの位置と可視化させる場所を一致させる
+        Gizmos.DrawWireSphere(origin, sphereRadius);
     }
 
     /// <summary>
@@ -235,19 +301,19 @@ public class PlayerMove : MonoBehaviour
     private void moveAngle()
     {
         // 現在の位置
-        Vector3 nowPos = PlayerTransform.position;
+        nowPos = PlayerTransform.position;
 
         // 移動量の計算
-        Vector3 delta = nowPos - previousPos;
+        Vector3 Alldelta = nowPos - previousPos;
+
+        // 必要な軸の情報だけを取り出す（Jumpなどに影響しないようにする）
+        Vector3 delta = new Vector3(Alldelta.x, 0.0f, Alldelta.z);
 
         // 前の位置の更新
         previousPos = nowPos;
 
         // 静止状態の時は回転しない
-        if (delta == Vector3.zero)
-        {
-            return;
-        }
+        if (delta == Vector3.zero) return;
 
         // 回転方向
         Quaternion targetRot = Quaternion.LookRotation(delta, Vector3.up);
