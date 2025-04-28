@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
@@ -195,49 +196,19 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     private void PlayerJump()
     {
-        //// Ray(SphereCast)の開始地点
-        //origin = transform.position + new Vector3(0.0f, 0.3f, 0.0f);
+        // isGroundをfalseにする
+        isGround = false;
 
-        //// Rayに当たった物の判定をとる
-        //RaycastHit hit;
-
-        //// Ray(SphereCast)に当たった時の処理
-        //if(Physics.SphereCast(origin, sphereRadius, Vector3.down, out hit, maxDistance))
-        //{
-        //    // Rayが当たっているオブジェクトのタグがGroundなら
-        //    if (hit.collider.gameObject.tag == "Ground")
-        //    {
-        //        Debug.Log("地面なう");
-        //        // isGroundをtrueにする
-        //        isGround = true;
-        //    }
-        //}
-        //// 地面についているかつジャンプボタンを押されたとき
-        //if (isGround && jump > 0)
-        //{
-        //    Debug.Log("スペースが押されましたよ");
-        //    // Y方向に移動させる
-        //    Velocity.y = Mathf.Sqrt(JumpHight * -2f * Physics.gravity.y);
-        //}
-
-        ////if(nowPos.y == MaxJump)
-        ////    // 地面についていない扱いにする
-        ////    isGround = false;
-
-        //// 重力を加える
-        //velocity.y += Physics.gravity.y * Time.deltaTime;
-        //characterController.Move(velocity * Time.deltaTime);
-        ////if (!isGround)
-        ////{
-
-        ////}
-        ///
+        // Rayの原点
         origin = transform.position + new Vector3(0.0f, 0.3f, 0.0f);
 
+        // Rayが当たったオブジェクトの情報格納
         RaycastHit hit;
 
+        // Ray（SphereCast）を出す
         if (Physics.SphereCast(origin, sphereRadius, Vector3.down, out hit, maxDistance))
         {
+            // 
             if (hit.collider.gameObject.CompareTag("Ground"))
             {
                 isGround = true;
@@ -249,21 +220,18 @@ public class PlayerMove : MonoBehaviour
             // 地面にいるときだけジャンプできる
             if (jump > 0f)
             {
-                Velocity.y = Mathf.Sqrt(JumpHight * -2f * Physics.gravity.y); // ジャンプ初速度を計算
+                Velocity.y = Mathf.Sqrt(JumpHight * -1f * Physics.gravity.y); // ジャンプ初速度を計算
             }
-        }
-        else
-        {
-            isGround = false;
         }
 
         if (!isGround)
         {
             // 常に重力を適用
-            Velocity.y += Physics.gravity.y * Time.deltaTime;
 
-            characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
         }
+        Velocity.y += Physics.gravity.y * Time.deltaTime;
+
+        characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
 
         Debug.Log("地面にいるでしょうか:" + isGround);
     }
