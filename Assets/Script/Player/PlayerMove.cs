@@ -196,26 +196,7 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     private void PlayerJump()
     {
-        // isGroundをfalseにする
-        isGround = false;
-
-        // Rayの原点
-        origin = transform.position + new Vector3(0.0f, 0.3f, 0.0f);
-
-        // Rayが当たったオブジェクトの情報格納
-        RaycastHit hit;
-
-        // Ray（SphereCast）を出す
-        if (Physics.SphereCast(origin, sphereRadius, Vector3.down, out hit, maxDistance))
-        {
-            // 
-            if (hit.collider.gameObject.CompareTag("Ground"))
-            {
-                isGround = true;
-            }
-        }
-
-        if (characterController.isGrounded || isGround)
+        if (characterController.isGrounded)
         {
             // 地面にいるときだけジャンプできる
             if (jump > 0f)
@@ -224,16 +205,9 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
-        if (!isGround)
-        {
-            // 常に重力を適用
-
-        }
         Velocity.y += Physics.gravity.y * Time.deltaTime;
 
         characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
-
-        Debug.Log("地面にいるでしょうか:" + isGround);
     }
 
     /// <summary>
