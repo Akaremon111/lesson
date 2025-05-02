@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 
@@ -16,6 +17,11 @@ public class HoverboardController : MonoBehaviour
     private Vector3 origin;
 
     /// <summary>
+    /// Rayを出している原点から当たったところまでの距離
+    /// </summary>
+    private float RayDistance;
+
+    /// <summary>
     /// BoxCastのサイズ
     /// </summary>
     private Vector3 BoxCastSize;
@@ -23,58 +29,116 @@ public class HoverboardController : MonoBehaviour
     /// <summary>
     /// BoxCastの最大距離
     /// </summary>
-    private float MaxDistance = 0.1f;
+    private float MaxDistance = 0.5f;
+
     /// <summary>
-    /// Rayに当たったオブジェクトの情報を格納
+    /// Rayが当たった時のオブジェクトの情報格納
     /// </summary>
-    private RaycastHit hit;
+    RaycastHit hit;
+
+    /// <summary>
+    /// Idle時の動きを行う
+    /// </summary>
+    private bool isIdle = true;
+
+    /// <summary>
+    /// Idle時のIdleの動きをスタートさせるポジション
+    /// </summary>
+    private Vector3 StartPos;
+
+    /// <summary>
+    /// 2.0fにπをかけてちょうど1秒で1往復のサイクルを作る
+    /// </summary>
+    private const float TwoPi = 2.0f * Mathf.PI;
+
+    /// <summary>
+    /// 上下運動する周期(1往復にかかる時間)
+    /// </summary>
+    private float IdlePeriod = 2.0f;
+
+    /// <summary>
+    /// 上下運動する周波数(〇秒間に何往復するか)
+    /// </summary>
+    private float IdleFrequency;
+
+    /// <summary>
+    /// 移動量の計算を格納
+    /// </summary>
+    private float IdleSinPos;
+
+    /// <summary>
+    /// 上下運動の振れ幅
+    /// </summary>
+    private float IdleAmplitude = 0.5f;
+
+    /// <summary>
+    /// ホバーボードを動かす
+    /// </summary>
+    public bool isBoardMove { get; set; } = false;
 
     private void Awake()
     {
         // Rigidbodyのコンポーネント取得
         rb = GetComponent<Rigidbody>();
 
-        // BoxCastのサイズをオブジェクトと同じ大きさにする
-        BoxCastSize = Vector3.one;
+        StartPos = transform.position;
     }
 
     private void Update()
     {
+        // Idle時のホバーボードの動き
         BoardIdle();
+
+        // ホバーボードの移動
+        BoardMove();
     }
 
     private void BoardIdle()
     {
-        // BoxCastの原点
-        origin = transform.position + new Vector3(0.0f, -0.5f, 0.0f);
-
-        // BoxCastを飛ばす
-        if(Physics.BoxCast(origin,BoxCastSize, Vector3.down,out hit,Quaternion.identity, MaxDistance))
+        origin = transform.position;
+        if (Physics.Raycast(origin, Vector3.down, out hit))
         {
-            //Vector3 force = new Vector3(0.0f, 10.0f, 0.0f);
-            //rb.AddForce(force);
-            Debug.Log("当たっています。");
+            RayDistance = hit.distance;
+        }
+
+        // isIdleがtrueになったとき
+        if (isIdle)
+        {
+            // 1秒間に何往復するかを求める
+            IdleFrequency = 1 / IdlePeriod;
+
+            // 上下運動の計算
+            IdleSinPos = Mathf.Sin(TwoPi * IdleFrequency * Time.time) * IdleAmplitude;
+
+            // 上下運動の移動処理
+            transform.position = StartPos + new Vector3(0.0f, IdleSinPos, 0.0f);
+        }
+    }
+
+    private void BoardMove()
+    {
+        // isBoardMoveがtrueになったとき(Playerがホバーボードに乗った時)
+        if(isBoardMove)
+        {
+         // BoxCastの原点
+        origin = transform.position;
+
+        // BoxCastのサイズをオブジェクトと同じ大きさにする
+        BoxCastSize = transform.localScale * 0.5f;
+
+            // BoxCastを飛ばす
+            if (Physics.BoxCast(origin, BoxCastSize, new Vector3(0, -0.2f, 0), out hit, Quaternion.identity, MaxDistance))
+            {
+
+            }
         }
     }
 
     private void OnDrawGizmos()
     {
-        // BoxCastの原点と方向
-        Vector3 originGizmo = transform.position + new Vector3(0.0f, -0.5f, 0.0f);
-        Vector3 direction = Vector3.down;
-
-        // BoxCastの半サイズ（BoxCastは半サイズ指定）
-        Vector3 halfExtents = Vector3.one * 0.5f; // または BoxCastSize が正しければそれ
-
-        // BoxCastが進む範囲の中心位置（視覚化用）
-        Vector3 center = originGizmo + direction * (MaxDistance * 0.5f);
-
-        // 回転（このコードでは回転してないから identity）
-        Quaternion orientation = Quaternion.identity;
-
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(center, halfExtents * 2);  // full size で描画
+        Gizmos.DrawWireCube(transform.position + new Vector3(0, -0.2f, 0), transform.localScale);
+
+        Gizmos.DrawRay(transform.position, Vector3.down);
     }
-
-
 }

@@ -46,24 +46,6 @@ public class PlayerMove : MonoBehaviour
     [SerializeField]
     private float maxSpeed;
 
-    [Header("その他設定")]
-    // SphereCastの半径
-    [SerializeField]
-    private float sphereRadius;
-    /// <summary>
-    /// SphereCastの最大の距離
-    /// </summary>
-    [SerializeField]
-    private float maxDistance;
-
-    // SphereCastの原点
-    private Vector3 origin;
-
-    /// <summary>
-    /// 現在地面にいるのかどうかの判定
-    /// </summary>
-    private bool isGround = true;
-
     /// <summary>
     /// カメラの向いている方向
     /// </summary>
@@ -82,7 +64,7 @@ public class PlayerMove : MonoBehaviour
     /// <summary>
     /// 現在のポジション
     /// </summary>
-    Vector3 nowPos;
+    private Vector3 nowPos;
 
     /// <summary>
     /// １フレーム前のポジション
@@ -208,18 +190,6 @@ public class PlayerMove : MonoBehaviour
         Velocity.y += Physics.gravity.y * Time.deltaTime;
 
         characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
-    }
-
-    /// <summary>
-    /// SphereCastの可視化
-    /// </summary>
-    private void OnDrawGizmos()
-    {
-        // カラーは青
-        Gizmos.color = Color.blue;
-
-        // Rayの位置と可視化させる場所を一致させる
-        Gizmos.DrawWireSphere(origin, sphereRadius);
     }
 
     /// <summary>

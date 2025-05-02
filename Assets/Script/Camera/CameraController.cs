@@ -4,31 +4,80 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    [SerializeField] GameObject Player;
-    private Vector3 playerPos;
+    /// <summary>
+    /// HoverboardControllerをシリアライズ
+    /// </summary>
+    [SerializeField]
+    private HoverboardController HBcontroller;
 
-    float CameraSpeed = 200.0f;
-    float mouseInputX;
-    float mouseInputY;
+    /// <summary>
+    /// Eキーの判定
+    /// </summary>
+    private bool EKey;
 
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// ホバーボードに乗る
+    /// </summary>
+    private bool isOnHoverboard;
+
+    /// <summary>
+    /// Rayの原点
+    /// </summary>
+    private Vector3 origin;
+
+    /// <summary>
+    /// Rayの最大距離
+    /// </summary>
+    private float MaxDistance = 10.0f;
+
+    /// <summary>
+    /// Rayにヒットしたオブジェクトの情報
+    /// </summary>
+    RaycastHit hit;
+
+    private void Awake()
     {
-        playerPos = Player.transform.position;
+        
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        transform.position += Player.transform.position - playerPos;
-        playerPos = Player.transform.position;
+        // キー入力の判定
+        ActionInput();
 
-        // マウスの入力検知
-        mouseInputX = Input.GetAxis("Mouse X");
-        mouseInputY = Input.GetAxis("Mouse Y");
+        // カメラで見たオブジェクトに応じた処理を行う
+        LookObject();
+    }
 
-        // Playrを中心としたカメラの回転
-        transform.RotateAround(playerPos, Vector3.up, mouseInputX * Time.deltaTime * CameraSpeed);
-        transform.RotateAround(playerPos, -transform.right, mouseInputY * Time.deltaTime * CameraSpeed);
+    private void ActionInput()
+    {
+        // Eキーの入力判定
+        EKey = InputManager.Instance.ActionE;
+
+        if(EKey)
+        {
+            Debug.Log("Eキー入力検知しました。");
+        }
+    }
+
+    /// <summary>
+    /// カメラで見た(Rayに当たった)オブジェクトに応じた処理を行う
+    /// </summary>
+    private void LookObject()
+    {
+        // 現在地の更新
+        origin = transform.position;
+
+        if (Physics.Raycast(origin, transform.forward, out hit, MaxDistance))
+        {
+
+            if (hit.collider.CompareTag("Hoverboard"))
+            {
+                Debug.Log("カメラで見ていますよ");
+            }
+        }
+        Vector3 direction = transform.forward * MaxDistance;
+        Debug.DrawRay(origin, direction, Color.red);
+
     }
 }

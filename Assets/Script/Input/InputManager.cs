@@ -33,6 +33,10 @@ public class InputManager : MonoBehaviour
     /// 攻撃アクション
     /// </summary>
     private InputAction attackAction;
+    /// <summary>
+    /// Eキー入力のアクション
+    /// </summary>
+    private InputAction actionE;
 
     /// <summary>
     /// 歩きの入力
@@ -60,6 +64,11 @@ public class InputManager : MonoBehaviour
     public float Attack {  get; private set; }
 
     /// <summary>
+    /// Eキーの入力検知(押された瞬間だけ検知する)
+    /// </summary>
+    public bool ActionE => actionE != null && actionE.WasPressedThisFrame();
+
+    /// <summary>
     /// 初期化
     /// </summary>
     private void Awake()
@@ -82,6 +91,7 @@ public class InputManager : MonoBehaviour
         sprintAction = playerInput.actions["Sprint"];
         jumpAction = playerInput.actions["Jump"];
         attackAction = playerInput.actions["Attack"];
+        actionE = playerInput.actions["ActionE"];
         Cursor.lockState = CursorLockMode.Locked;
     }
 
