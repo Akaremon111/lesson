@@ -9,6 +9,7 @@ public class CameraController : MonoBehaviour
     /// </summary>
     [SerializeField]
     private HoverboardController HBcontroller;
+   
 
     /// <summary>
     /// Eキーの判定
@@ -56,7 +57,7 @@ public class CameraController : MonoBehaviour
 
         if(EKey)
         {
-            Debug.Log("Eキー入力検知しました。");
+            HBcontroller.IsBoardMove = true;
         }
     }
 

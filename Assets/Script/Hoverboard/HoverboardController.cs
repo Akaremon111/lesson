@@ -7,9 +7,26 @@ using UnityEngine.InputSystem.HID;
 public class HoverboardController : MonoBehaviour
 {
     /// <summary>
-    /// Rigidbodyのコンポーネント
+    /// Playerのオブジェクト取得
     /// </summary>
-    private Rigidbody rb;
+    [SerializeField]
+    private GameObject Player;
+
+    /// <summary>
+    /// ホバーボードのオブジェクト取得
+    /// </summary>
+    [SerializeField]
+    private GameObject Hoverboard;
+
+    /// <summary>
+    /// Playerオブジェクトのポジション
+    /// </summary>
+    private Vector3 PlayerPos;
+
+    /// <summary>
+    /// ホバーボードオブジェクトのポジション
+    /// </summary>
+    private Vector3 HBpos;
 
     /// <summary>
     /// BoxCastの原点
@@ -22,14 +39,20 @@ public class HoverboardController : MonoBehaviour
     private float RayDistance;
 
     /// <summary>
+    /// SphereCastの半径
+    /// </summary>
+    [SerializeField]
+    private float SphereRadius;
+
+    /// <summary>
     /// BoxCastのサイズ
     /// </summary>
     private Vector3 BoxCastSize;
 
     /// <summary>
-    /// BoxCastの最大距離
+    /// Rayの最大距離
     /// </summary>
-    private float MaxDistance = 0.5f;
+    private float MaxDistance = 0.1f;
 
     /// <summary>
     /// Rayが当たった時のオブジェクトの情報格納
@@ -74,30 +97,38 @@ public class HoverboardController : MonoBehaviour
     /// <summary>
     /// ホバーボードを動かす
     /// </summary>
-    public bool isBoardMove { get; set; } = false;
+    public bool IsBoardMove { get; set; } = false;
 
     private void Awake()
     {
-        // Rigidbodyのコンポーネント取得
-        rb = GetComponent<Rigidbody>();
-
         StartPos = transform.position;
     }
 
     private void Update()
     {
+        // 各Rayで使用するRayの原点
+        origin = transform.position;
+
         // Idle時のホバーボードの動き
         BoardIdle();
+
+        // ホバーボードに乗ることのできるエリア
+        ActiveArea();
 
         // ホバーボードの移動
         BoardMove();
     }
 
+    /// <summary>
+    /// ホバーボードのIdle状態の動き
+    /// </summary>
     private void BoardIdle()
     {
-        origin = transform.position;
+
+        // Rayの発射
         if (Physics.Raycast(origin, Vector3.down, out hit))
         {
+            // Rayの原点から当たってる場所までの距離
             RayDistance = hit.distance;
         }
 
@@ -115,10 +146,27 @@ public class HoverboardController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// ホバーボードに乗ることのできる範囲にSphereCastを飛ばす
+    /// </summary>
+    private void ActiveArea()
+    {
+        Debug.Log(origin);
+        // SphereCastの発射
+        if(Physics.SphereCast(origin, SphereRadius, Vector3.up, out hit, MaxDistance))
+        {
+            Debug.Log("範囲内に入りました。");
+        }
+        
+    }
+
+    /// <summary>
+    /// ホバーボードの動き
+    /// </summary>
     private void BoardMove()
     {
-        // isBoardMoveがtrueになったとき(Playerがホバーボードに乗った時)
-        if(isBoardMove)
+        // IsBoardMoveがtrueになったとき(Playerがホバーボードに乗った時)
+        if(IsBoardMove)
         {
          // BoxCastの原点
         origin = transform.position;
@@ -134,11 +182,14 @@ public class HoverboardController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Debug用
+    /// </summary>
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position + new Vector3(0, -0.2f, 0), transform.localScale);
+        //Gizmos.DrawWireCube(transform.position + new Vector3(0, -0.2f, 0), transform.localScale);
 
-        Gizmos.DrawRay(transform.position, Vector3.down);
+        Gizmos.DrawWireSphere(origin, SphereRadius);
     }
 }

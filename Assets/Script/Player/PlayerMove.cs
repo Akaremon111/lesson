@@ -236,8 +236,10 @@ public class PlayerMove : MonoBehaviour
         // 回転時間とスピードの計算
         float rotAngle = Mathf.SmoothDampAngle(0, diffAngle, ref crrentVerocity, smoothTime, maxSpeed);
 
-        // 現在の角度からtargetRotに向かって回転
+        // 現在の角度からtargetRotに向かっての回転量の計算
         Quaternion nextRot = Quaternion.RotateTowards(PlayerTransform.rotation, targetRot, rotAngle);
+
+        // 回転を行う
         PlayerTransform.rotation = nextRot;
     }
 
