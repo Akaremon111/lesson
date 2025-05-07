@@ -151,7 +151,6 @@ public class HoverboardController : MonoBehaviour
     /// </summary>
     private void ActiveArea()
     {
-        Debug.Log(origin);
         // SphereCastの発射
         if(Physics.SphereCast(origin, SphereRadius, Vector3.up, out hit, MaxDistance))
         {
@@ -190,6 +189,6 @@ public class HoverboardController : MonoBehaviour
         Gizmos.color = Color.yellow;
         //Gizmos.DrawWireCube(transform.position + new Vector3(0, -0.2f, 0), transform.localScale);
 
-        Gizmos.DrawWireSphere(origin, SphereRadius);
+        Gizmos.DrawWireSphere(transform.position + transform.up * MaxDistance, SphereRadius);
     }
 }
