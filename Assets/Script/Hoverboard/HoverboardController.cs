@@ -13,20 +13,14 @@ public class HoverboardController : MonoBehaviour
     private GameObject Player;
 
     /// <summary>
-    /// ホバーボードのオブジェクト取得
-    /// </summary>
-    [SerializeField]
-    private GameObject Hoverboard;
-
-    /// <summary>
     /// Playerオブジェクトのポジション
     /// </summary>
     private Vector3 PlayerPos;
 
     /// <summary>
-    /// ホバーボードオブジェクトのポジション
+    /// InputManagerから入力判定を受け取る
     /// </summary>
-    private Vector3 HBpos;
+    private bool Ekey;
 
     /// <summary>
     /// BoxCastの原点
@@ -99,6 +93,13 @@ public class HoverboardController : MonoBehaviour
     /// </summary>
     public bool IsBoardMove { get; set; } = false;
 
+    /// <summary>
+    /// Playerオブジェクトをホバーボードの子オブジェクトにするフラグ
+    /// </summary>
+    private bool isChild = false;
+
+    private Vector3 PlayerScale;
+
     private void Awake()
     {
         StartPos = transform.position;
@@ -106,8 +107,13 @@ public class HoverboardController : MonoBehaviour
 
     private void Update()
     {
+        PlayerScale = transform.localScale;
+
         // 各Rayで使用するRayの原点
         origin = transform.position;
+
+        // InputManagerから入力の判定を受け取る
+        getInput();
 
         // Idle時のホバーボードの動き
         BoardIdle();
@@ -120,11 +126,19 @@ public class HoverboardController : MonoBehaviour
     }
 
     /// <summary>
+    /// InputManagerから入力の判定を受け取る
+    /// </summary>
+    private void getInput()
+    {
+        // Eキーの入力判定
+        Ekey = InputManager.Instance.ActionE;
+    }
+
+    /// <summary>
     /// ホバーボードのIdle状態の動き
     /// </summary>
     private void BoardIdle()
     {
-
         // Rayの発射
         if (Physics.Raycast(origin, Vector3.down, out hit))
         {
@@ -156,7 +170,28 @@ public class HoverboardController : MonoBehaviour
         {
             Debug.Log("範囲内に入りました。");
         }
-        
+
+        if (Ekey && !isChild)
+        {
+            // Playerオブジェクトをホバーボードの子オブジェクトにする
+            Player.transform.SetParent(gameObject.transform, true);
+
+            Vector3 parentScale = gameObject.transform.lossyScale;
+
+            // 4. 各軸ごとにlocalScaleを調整
+            Player.transform.localScale = new Vector3(
+                PlayerScale.x / parentScale.x,
+                PlayerScale.y / parentScale.y,
+                PlayerScale.z / parentScale.z);
+
+            // 子オブジェクトになったのでtrueにする
+            isChild = true;
+        }
+        else if (Ekey && isChild)
+        {
+            Player.transform.SetParent(null, false);
+            isChild = false;
+        }
     }
 
     /// <summary>
