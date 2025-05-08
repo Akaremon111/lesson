@@ -13,6 +13,12 @@ public class HoverboardController : MonoBehaviour
     private GameObject Player;
 
     /// <summary>
+    /// ホバーボードの親オブジェクト
+    /// </summary>
+    [SerializeField]
+    private GameObject Hoverboard;
+
+    /// <summary>
     /// Playerオブジェクトのポジション
     /// </summary>
     private Vector3 PlayerPos;
@@ -33,7 +39,12 @@ public class HoverboardController : MonoBehaviour
     private float RayDistance;
 
     /// <summary>
-    /// SphereCastの半径
+    /// SphereCastAllの当たったオブジェクト情報の配列
+    /// </summary>
+    RaycastHit[] hits;
+
+    /// <summary>
+    /// SphereCastAllの半径
     /// </summary>
     [SerializeField]
     private float SphereRadius;
@@ -161,36 +172,44 @@ public class HoverboardController : MonoBehaviour
     }
 
     /// <summary>
-    /// ホバーボードに乗ることのできる範囲にSphereCastを飛ばす
+    /// ホバーボードに乗ることのできる範囲にSphereCastAllを飛ばす
     /// </summary>
     private void ActiveArea()
     {
-        // SphereCastの発射
-        if(Physics.SphereCast(origin, SphereRadius, Vector3.up, out hit, MaxDistance))
+        // SphereCastAllの発射
+        hits = Physics.SphereCastAll(origin, SphereRadius, Vector3.down, MaxDistance);
+
+        // hitしたオブジェクトの情報
+        foreach (RaycastHit hit in hits)
         {
-            Debug.Log("範囲内に入りました。");
-        }
+            // 当たったオブジェクトのタグがPlayerのとき
+            if(hit.collider.CompareTag("Player"))
+            {
+                // Eキーが押されたとき
+                if(Ekey)
+                {
+                    // isChildがfalseなら
+                    if(!isChild)
+                    {
+                        // Playerオブジェクトをホバーボードの子オブジェクトにする
+                        Player.transform.SetParent(Hoverboard.transform, true);
 
-        if (Ekey && !isChild)
-        {
-            // Playerオブジェクトをホバーボードの子オブジェクトにする
-            Player.transform.SetParent(gameObject.transform, true);
+                        // Playerの位置をホバーボードの上にする
+                        Player.transform.position = Hoverboard.transform.position + new Vector3(0.0f, 0.3f, 0.0f);
 
-            Vector3 parentScale = gameObject.transform.lossyScale;
+                        // 子オブジェクトになったのでtrueにする
+                        isChild = true;
+                    }
+                    else
+                    {
+                        // 親子関係を解除する
+                        Player.transform.SetParent(null, false);
 
-            // 4. 各軸ごとにlocalScaleを調整
-            Player.transform.localScale = new Vector3(
-                PlayerScale.x / parentScale.x,
-                PlayerScale.y / parentScale.y,
-                PlayerScale.z / parentScale.z);
-
-            // 子オブジェクトになったのでtrueにする
-            isChild = true;
-        }
-        else if (Ekey && isChild)
-        {
-            Player.transform.SetParent(null, false);
-            isChild = false;
+                        // 親子関係が解除されたのでfalseにする
+                        isChild = false;
+                    }
+                }
+            }
         }
     }
 
