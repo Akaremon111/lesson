@@ -109,17 +109,22 @@ public class HoverboardController : MonoBehaviour
     /// </summary>
     private bool isChild = false;
 
-    private Vector3 PlayerScale;
+    /// <summary>
+    /// PlayerManagerの取得
+    /// </summary>
+    private PlayerManager playerManager;
 
     private void Awake()
     {
+        // PlayerManagerスクリプトの取得
+        playerManager = Player.GetComponent<PlayerManager>();
+
+        // ゲーム開始時のポジション
         StartPos = transform.position;
     }
 
     private void Update()
     {
-        PlayerScale = transform.localScale;
-
         // 各Rayで使用するRayの原点
         origin = transform.position;
 
@@ -185,23 +190,35 @@ public class HoverboardController : MonoBehaviour
             // 当たったオブジェクトのタグがPlayerのとき
             if(hit.collider.CompareTag("Player"))
             {
-                // Eキーが押されたとき
-                if(Ekey)
+                // Eキーが押されたときかつ攻撃中じゃないとき
+                if(Ekey && playerManager.state != PlayerState.Attacking)
                 {
                     // isChildがfalseなら
                     if(!isChild)
                     {
+                        // Playerの状態をホバーボードに乗っている状態にする
+                        playerManager.state = PlayerState.OnBoard;
+
+                        // アイドル状態をやめる
+                        isIdle = false;
+
                         // Playerオブジェクトをホバーボードの子オブジェクトにする
                         Player.transform.SetParent(Hoverboard.transform, true);
 
                         // Playerの位置をホバーボードの上にする
-                        Player.transform.position = Hoverboard.transform.position + new Vector3(0.0f, 0.3f, 0.0f);
+                        Player.transform.position = Hoverboard.transform.position + new Vector3(0.0f, 10.0f, 0.0f);
 
                         // 子オブジェクトになったのでtrueにする
                         isChild = true;
                     }
                     else
                     {
+                        // Playerの状態を何もしていない状態に戻す
+                        playerManager.state = PlayerState.None;
+
+                        // アイドル状態にする
+                        isIdle = true;
+
                         // 親子関係を解除する
                         Player.transform.SetParent(null, false);
 

@@ -5,7 +5,9 @@ using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
 {
-    // InputManagerのインスタンス
+    /// <summary>
+    /// InputManagerのインスタンス
+    /// </summary>
     public static InputManager Instance { get; private set; }
 
     /// <summary>

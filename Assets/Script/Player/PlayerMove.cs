@@ -1,14 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.XR;
-using UnityEngine.UI;
-using UnityEngine.Windows;
-
 public class PlayerMove : MonoBehaviour
 {
+    /// <summary>
+    /// PlayerManagerの取得
+    /// </summary>
+    private PlayerManager playerManager;
+
     [Header("移動設定")]
     /// <summary>
     /// Playerの移動速度
@@ -33,6 +30,11 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     [SerializeField]
     private float Gravity;
+
+    /// <summary>
+    /// Noneの状態にするかのフラグ
+    /// </summary>
+    private bool isNone = false;
 
     /// <summary>
     /// 回転時間
@@ -70,6 +72,10 @@ public class PlayerMove : MonoBehaviour
     /// １フレーム前のポジション
     /// </summary>
     private Vector3 previousPos;
+
+    /// <summary>
+    /// 現在のVerocity
+    /// </summary>
     private float crrentVerocity;
 
     /// <summary>
@@ -103,13 +109,11 @@ public class PlayerMove : MonoBehaviour
     private int pMoveAnimation = 0;
     private int getMoveAnimation;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    private Vector3 velocity;
-
     private void Awake()
     {
+        // PlayerManagerの取得
+        playerManager = GetComponent<PlayerManager>();
+
         // アニメーションコンポーネント取得
         animator = GetComponent<Animator>();
 
@@ -178,18 +182,43 @@ public class PlayerMove : MonoBehaviour
     /// </summary>
     private void PlayerJump()
     {
-        if (characterController.isGrounded)
+        // Playerの状態がホバーボードに乗っていないかつ攻撃をしていないとき
+        if(playerManager.state != PlayerState.OnBoard && playerManager.state != PlayerState.Attacking)
         {
-            // 地面にいるときだけジャンプできる
-            if (jump > 0f)
+            // 地面にいるとき
+            if (characterController.isGrounded)
             {
-                Velocity.y = Mathf.Sqrt(JumpHight * -1f * Physics.gravity.y); // ジャンプ初速度を計算
+                // 地面にいるときだけジャンプできる
+                if (jump > 0f)
+                {
+                    // ジャンプ状態にする
+                    playerManager.state = PlayerState.Jumping;
+
+                    // ジャンプの速度計さん
+                    Velocity.y = Mathf.Sqrt(JumpHight * -1f * Physics.gravity.y);
+
+                    // isNoneをfalseにする
+                    isNone = false;
+                }
             }
+            else
+            {
+                // isNoneがfalseの時
+                if (!isNone)
+                {
+                    // isNoneをtrueにする
+                    isNone = true;
+
+                    // 地面にいるときは何もいない状態にする
+                    playerManager.state = PlayerState.None;
+                }
+            }
+            // 重力を与える
+            Velocity.y += Physics.gravity.y * Time.deltaTime;
+
+            // 移動の処理を行う
+            characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
         }
-
-        Velocity.y += Physics.gravity.y * Time.deltaTime;
-
-        characterController.Move(new Vector3(0, Velocity.y, 0) * Time.deltaTime);
     }
 
     /// <summary>
