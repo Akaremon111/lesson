@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class InputManager : MonoBehaviour
 {
     /// <summary>
-    /// InputManagerのインスタンス
+    /// InputManager
     /// </summary>
     public static InputManager Instance { get; private set; }
 
@@ -87,6 +87,7 @@ public class InputManager : MonoBehaviour
         // シーンをまたいでも維持
         DontDestroyOnLoad(gameObject);
 
+        // 初期化
         playerInput = GetComponent<PlayerInput>();
         moveAction = playerInput.actions["Move"];
         lookAction = playerInput.actions["Look"];

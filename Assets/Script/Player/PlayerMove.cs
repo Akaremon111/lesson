@@ -32,11 +32,6 @@ public class PlayerMove : MonoBehaviour
     private float Gravity;
 
     /// <summary>
-    /// Noneの状態にするかのフラグ
-    /// </summary>
-    private bool isNone = false;
-
-    /// <summary>
     /// 回転時間
     /// </summary>
     [SerializeField]
@@ -134,14 +129,18 @@ public class PlayerMove : MonoBehaviour
         // 入力を受け取る
         getInput();
 
-        // 移動方向の処理
-        moveDirection();
+        // Stateが何もしていない状態の時だけ呼び出す
+        if (playerManager.state == PlayerState.None)
+        {
+            // 移動方向の処理
+            moveDirection();
 
-        // Playerの角度の計算
-        moveAngle();
+            // Playerの角度の計算
+            moveAngle();
 
-        // アニメーションを動かす
-        moveAnimation();
+            // アニメーションを動かす
+            moveAnimation();
+        }
 
         // ジャンプ
         PlayerJump();
@@ -163,8 +162,12 @@ public class PlayerMove : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        // 移動の処理
-        Move();
+        // Stateが何もしていない状態の時だけ呼び出す
+        if(playerManager.state == PlayerState.None)
+        {
+            // 移動の処理
+            Move();
+        }
     }
 
     /// <summary>
@@ -185,33 +188,22 @@ public class PlayerMove : MonoBehaviour
         // Playerの状態がホバーボードに乗っていないかつ攻撃をしていないとき
         if(playerManager.state != PlayerState.OnBoard && playerManager.state != PlayerState.Attacking)
         {
+            // 地面にいるときは何もいない状態にする
+            playerManager.state = PlayerState.None;
             // 地面にいるとき
             if (characterController.isGrounded)
             {
                 // 地面にいるときだけジャンプできる
                 if (jump > 0f)
                 {
-                    // ジャンプ状態にする
-                    playerManager.state = PlayerState.Jumping;
-
                     // ジャンプの速度計さん
                     Velocity.y = Mathf.Sqrt(JumpHight * -1f * Physics.gravity.y);
-
-                    // isNoneをfalseにする
-                    isNone = false;
                 }
             }
             else
             {
-                // isNoneがfalseの時
-                if (!isNone)
-                {
-                    // isNoneをtrueにする
-                    isNone = true;
-
-                    // 地面にいるときは何もいない状態にする
-                    playerManager.state = PlayerState.None;
-                }
+                // ジャンプ状態にする
+                playerManager.state = PlayerState.Jumping;
             }
             // 重力を与える
             Velocity.y += Physics.gravity.y * Time.deltaTime;

@@ -19,19 +19,36 @@ public class HoverboardController : MonoBehaviour
     private GameObject Hoverboard;
 
     /// <summary>
-    /// Playerオブジェクトのポジション
+    /// ホバーボードのスピード
     /// </summary>
-    private Vector3 PlayerPos;
+    [SerializeField]
+    private float BoardSpeed;
 
     /// <summary>
     /// InputManagerから入力判定を受け取る
     /// </summary>
+    // Eキーの入力
     private bool Ekey;
+    // Move
+    private Vector2 move;
 
     /// <summary>
-    /// BoxCastの原点
+    /// Rayの原点
     /// </summary>
     private Vector3 origin;
+
+    /// <summary>
+    /// Rayの最大距離
+    /// </summary>
+    private float MaxDistance = 0.1f;
+    /// <summary>
+    /// 下方向に飛ばして当たっているかどうかを見るRay
+    /// </summary>
+    private Ray ray1;
+    private Ray ray2;
+    private Ray ray3;
+    private Ray ray4;
+    private Ray ray5;
 
     /// <summary>
     /// Rayを出している原点から当たったところまでの距離
@@ -48,16 +65,6 @@ public class HoverboardController : MonoBehaviour
     /// </summary>
     [SerializeField]
     private float SphereRadius;
-
-    /// <summary>
-    /// BoxCastのサイズ
-    /// </summary>
-    private Vector3 BoxCastSize;
-
-    /// <summary>
-    /// Rayの最大距離
-    /// </summary>
-    private float MaxDistance = 0.1f;
 
     /// <summary>
     /// Rayが当たった時のオブジェクトの情報格納
@@ -148,6 +155,9 @@ public class HoverboardController : MonoBehaviour
     {
         // Eキーの入力判定
         Ekey = InputManager.Instance.ActionE;
+
+        // 移動キーの入力判定
+        move = InputManager.Instance.Move;
     }
 
     /// <summary>
@@ -206,7 +216,7 @@ public class HoverboardController : MonoBehaviour
                         Player.transform.SetParent(Hoverboard.transform, true);
 
                         // Playerの位置をホバーボードの上にする
-                        Player.transform.position = Hoverboard.transform.position + new Vector3(0.0f, 10.0f, 0.0f);
+                        Player.transform.position = gameObject.transform.position + new Vector3(0.0f, 0.15f, 0.0f);
 
                         // 子オブジェクトになったのでtrueにする
                         isChild = true;
@@ -235,19 +245,24 @@ public class HoverboardController : MonoBehaviour
     /// </summary>
     private void BoardMove()
     {
-        // IsBoardMoveがtrueになったとき(Playerがホバーボードに乗った時)
-        if(IsBoardMove)
+        // ホバーボードに乗っている状態のとき
+        if(playerManager.state == PlayerState.OnBoard)
         {
-         // BoxCastの原点
-        origin = transform.position;
+            // Rayの原点
+            origin = transform.position;
 
-        // BoxCastのサイズをオブジェクトと同じ大きさにする
-        BoxCastSize = transform.localScale * 0.5f;
-
-            // BoxCastを飛ばす
-            if (Physics.BoxCast(origin, BoxCastSize, new Vector3(0, -0.2f, 0), out hit, Quaternion.identity, MaxDistance))
+            // Rayを飛ばす
+            if (Physics.Raycast(origin, Vector3.down))
             {
+                Debug.Log("当たっています。");
+                Hoverboard.transform.position += Hoverboard.transform.position + new Vector3(0.0f, 0.1f, 0.0f);
+            }
 
+            // 移動キーが押されている時
+            if (move.magnitude > 0)
+            {
+                Debug.Log("ここは読み込まれているよ");
+                Hoverboard.transform.position += Hoverboard.transform.position * Time.deltaTime * BoardSpeed;
             }
         }
     }
@@ -258,7 +273,7 @@ public class HoverboardController : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        //Gizmos.DrawWireCube(transform.position + new Vector3(0, -0.2f, 0), transform.localScale);
+        Gizmos.DrawWireCube(transform.position + new Vector3(0.0f, -0.2f, 0.0f), transform.localScale);
 
         Gizmos.DrawWireSphere(transform.position + transform.up * MaxDistance, SphereRadius);
     }
